@@ -4,17 +4,19 @@
 
 一个基于自定义ReAct Agent架构的智能旅游助手系统，集成GPT-4o-mini大模型，提供城市推荐、景点查询、路线规划等功能。
 
-项目采用**Python后端（FastAPI）+ React前端**的现代技术栈，支持SSE流式响应、多会话管理、深度思考过程展示等功能。
+项目采用**Python后端（FastAPI）+ Next.js前端**的现代技术栈，支持SSE流式响应、多会话管理、深度思考过程展示、SSR/SSG渲染优化等功能。
 
 ### 核心特性
 
 - ✅ **自定义ReAct Agent架构** - 无第三方AI框架依赖，完整的推理-行动循环
-- ✅ **深度思考展示** - 可折叠的思考过程框，类似DeepSeek的展示方式
+- ✅ **深度思考展示** - 可折叠的思考过程框，类似DeepSeek的展示方式，实时计时
 - ✅ **流式响应处理** - SSE实时流式输出，支持停止控制
 - ✅ **多协议LLM支持** - OpenAI、Claude、Gemini、本地模型等
 - ✅ **多会话管理** - 独立的对话历史和Agent实例，会话隔离
-- ✅ **现代化前端** - React 18 + TypeScript + Ant Design + Vite
+- ✅ **现代化前端** - Next.js 14 + React 18 + TypeScript + Ant Design 5
 - ✅ **完整API接口** - FastAPI Swagger文档
+- ✅ **SSR/SSG支持** - 服务端渲染优化，首屏加载更快
+- ✅ **SEO友好** - 更好的搜索引擎优化
 
 ---
 
@@ -31,25 +33,31 @@ ShuaiTravelAgent/
 │   ├── environment.py                   # 环境交互和工具调用
 │   ├── io_handler.py                    # 输入输出处理和日志
 │   ├── logger_manager.py                # 日志管理系统
+│   ├── react_agent.py                   # ReAct Agent核心实现
 │   └── app.py                           # FastAPI Web服务
 │
-├── frontend/                            # React前端
+├── frontend/                            # Next.js前端
 │   ├── src/
-│   │   ├── components/
+│   │   ├── app/                         # Next.js App Router
+│   │   │   ├── layout.tsx               # 根布局
+│   │   │   ├── page.tsx                 # 首页
+│   │   │   └── globals.css              # 全局样式
+│   │   ├── components/                  # React组件
 │   │   │   ├── ChatArea.tsx             # 主聊天区域
 │   │   │   ├── MessageList.tsx          # 消息列表组件
-│   │   │   └── Sidebar.tsx              # 侧边栏（会话管理）
-│   │   ├── context/
+│   │   │   ├── Sidebar.tsx              # 侧边栏（会话管理）
+│   │   │   └── AntdConfig.tsx           # Ant Design配置
+│   │   ├── context/                     # 状态管理
 │   │   │   └── AppContext.tsx           # 全局状态管理
-│   │   ├── services/
+│   │   ├── services/                    # API服务
 │   │   │   └── api.ts                   # API服务
-│   │   ├── types/
-│   │   │   └── index.ts                 # TypeScript类型定义
-│   │   ├── App.tsx                      # 主应用组件
-│   │   └── main.tsx                     # 入口文件
+│   │   └── types/                       # TypeScript类型
+│   │       └── index.ts                 # 类型定义
 │   ├── package.json                     # npm依赖配置
-│   ├── vite.config.ts                   # Vite构建配置
-│   └── index.html                       # HTML模板
+│   ├── next.config.js                   # Next.js配置
+│   ├── tsconfig.json                    # TypeScript配置
+│   ├── vercel.json                      # Vercel部署配置
+│   └── DEPLOYMENT.md                    # 部署文档
 │
 ├── config/
 │   ├── config.json                      # 项目配置（需自行创建）
@@ -57,6 +65,7 @@ ShuaiTravelAgent/
 │
 ├── run_api.py                           # 后端启动脚本
 ├── requirements.txt                     # Python依赖
+├── .gitignore                           # Git忽略配置
 └── README.md                            # 本文档
 ```
 
@@ -67,8 +76,8 @@ ShuaiTravelAgent/
 ### 前置条件
 
 - Python 3.8+
-- Node.js 16+
-- npm 8+
+- Node.js 18+
+- npm 9+
 
 ### 第1步：安装依赖
 
@@ -102,6 +111,11 @@ cd ..
 }
 ```
 
+创建 `frontend/.env.local`：
+```bash
+NEXT_PUBLIC_API_BASE=http://localhost:8000
+```
+
 ### 第3步：启动服务
 
 **终端1 - 启动后端API**：
@@ -109,7 +123,7 @@ cd ..
 python run_api.py
 ```
 
-**终端2 - 启动React前端**：
+**终端2 - 启动Next.js前端**：
 ```bash
 cd frontend
 npm run dev
@@ -138,15 +152,16 @@ npm run dev
 
 ### 前端功能
 
-- **✅ 深度思考展示** - 可折叠的思考过程框，默认折叠只显示加载动画
-- **✅ 流式回答** - AI回答逐字流式显示
-- **✅ 停止控制** - 随时中断生成
-- **✅ 会话管理** - 创建、切换、删除、重命名对话
-- **✅ 智能会话命名** - 首次发送自动命名
-- **✅ 会话隔离** - 不同会话消息完全独立
-- **✅ 消息缓存** - 切换会话保留原会话历史
-- **✅ 响应式设计** - 适配各种屏幕尺寸
-- **✅ Markdown渲染** - 支持富文本格式显示
+- ✅ **深度思考展示** - 可折叠的思考过程框，默认折叠只显示加载动画
+- ✅ **实时计时** - 思考过程中实时显示耗时秒数
+- ✅ **流式回答** - AI回答逐字流式显示
+- ✅ **停止控制** - 随时中断生成
+- ✅ **会话管理** - 创建、切换、删除、重命名对话
+- ✅ **智能会话命名** - 首次发送自动命名
+- ✅ **会话隔离** - 不同会话消息完全独立
+- ✅ **消息缓存** - 切换会话保留原会话历史
+- ✅ **响应式设计** - 适配各种屏幕尺寸
+- ✅ **Markdown渲染** - 支持富文本格式显示
 
 ---
 
@@ -159,6 +174,8 @@ npm run dev
     ↓
 显示"深度思考中"加载动画（默认折叠）
     ↓
+实时显示思考耗时秒数
+    ↓
 用户可点击展开查看思考过程
     ↓
 思考过程流式实时显示
@@ -170,7 +187,7 @@ npm run dev
 
 ### 界面特点
 
-- **默认状态**：只显示紫色加载动画圆圈
+- **默认状态**：显示加载动画圆圈 + 实时计时
 - **点击展开**：显示完整的思考过程内容
 - **实时流式**：思考内容边生成边显示
 - **完成状态**：显示"深度思考"标签，可继续查看
@@ -377,17 +394,16 @@ GET /api/city/{city_name}       # 获取城市详情
 ```bash
 cd frontend
 npm run build
+npm start
 ```
 
-**部署选项**：
+**部署到Vercel**：
+```bash
+cd frontend
+vercel --prod
+```
 
-1. **Nginx反向代理**（推荐）
-   - 托管前端静态文件
-   - 代理API请求到后端
-
-2. **FastAPI直接托管**
-   - 将`dist`文件夹集成到后端
-   - 单进程部署
+详见 [frontend/DEPLOYMENT.md](frontend/DEPLOYMENT.md)
 
 ---
 
@@ -401,11 +417,11 @@ A: 修改 config/config.json 中的：
    - model: 模型名称
 ```
 
-**Q2: React前端无法连接后端？**
+**Q2: 前端无法连接后端？**
 ```
 A: 检查：
    1. 后端是否运行在 http://localhost:8000
-   2. CORS是否已配置（app.py已默认配置）
+   2. .env.local 是否配置了 NEXT_PUBLIC_API_BASE
    3. 浏览器控制台（F12）查看具体错误
 ```
 
@@ -445,6 +461,13 @@ A: 不会。切换会话时：
 ---
 
 ## 更新日志
+
+### v2.1.0
+- 迁移到 Next.js 14 + App Router
+- 添加深度思考实时计时功能
+- 优化前端架构和性能
+- 添加 SSR/SSG 支持
+- 更新部署文档
 
 ### v2.0.0
 - 新增深度思考展示功能（可折叠思考过程框）
